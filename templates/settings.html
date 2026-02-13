@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings | LearnoSphere</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="dashboard-body">
+    <main class="main-content">
+        <header class="dashboard-header">
+            <h2>⚙️ Settings</h2>
+            <a href="/" class="btn" style="width: auto;">Back to Dashboard</a>
+        </header>
+
+        <div class="card" style="max-width: 600px;">
+            <h3>Account Preferences</h3>
+            <div class="input-group" style="margin: 20px 0;">
+                <label style="position: static; color: #333;">Email Notifications</label>
+                <input type="checkbox" checked style="width: auto;">
+            </div>
+
+            <div class="input-group" style="margin: 20px 0;">
+                <label style="position: static; color: #333;">Dark Mode</label>
+                <input type="checkbox" style="width: auto;">
+            </div>
+
+            <button class="btn">Save Changes</button>
+        </div>
+    </main>
+</body>
+
+</html>

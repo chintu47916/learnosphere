@@ -1,0 +1,7 @@
+flask
+flask-session
+authlib
+pymongo
+python-dotenv
+requests
+google-generativeai

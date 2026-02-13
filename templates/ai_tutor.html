@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Tutor | LearnoSphere</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="dashboard-body">
+    <main class="main-content" style="display: flex; flex-direction: column; height: 100vh;">
+        <header class="dashboard-header">
+            <h2>🤖 AI Tutor</h2>
+            <a href="/" class="btn" style="width: auto;">Back to Dashboard</a>
+        </header>
+
+        <div class="card" style="flex-grow: 1; display: flex; flex-direction: column; padding: 0; overflow: hidden;">
+            <div class="chat-history" style="flex-grow: 1; padding: 20px; overflow-y: auto; background: #f9f9f9;">
+                <div class="message bot" style="margin-bottom: 20px;">
+                    <div class="bubble"
+                        style="background: white; padding: 15px; border-radius: 15px 15px 15px 0; border: 1px solid #eee; display: inline-block; max-width: 80%;">
+                        Hello {{ user.name }}! I am your AI Tutor. How can I help you with your studies today?
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-input"
+                style="padding: 20px; background: white; border-top: 1px solid #eee; display: flex; gap: 10px;">
+                <input type="text" placeholder="Ask a question..."
+                    style="flex-grow: 1; padding: 15px; border: 1px solid #ddd; border-radius: 25px; outline: none;">
+                <button class="btn" style="width: auto; border-radius: 25px; padding: 0 30px;">Send</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const chatInput = document.querySelector('.chat-input input');
+        const sendBtn = document.querySelector('.chat-input button');
+        const chatHistory = document.querySelector('.chat-history');
+
+        function addMessage(text, sender) {
+            const msgDiv = document.createElement('div');
+            msgDiv.classList.add('message', sender);
+            msgDiv.style.marginBottom = '20px';
+
+            const bubble = document.createElement('div');
+            bubble.classList.add('bubble');
+            bubble.style.padding = '15px';
+            bubble.style.display = 'inline-block';
+            bubble.style.maxWidth = '80%';
+            bubble.style.border = '1px solid #eee';
+
+            if (sender === 'user') {
+                msgDiv.style.textAlign = 'right';
+                bubble.style.background = '#0072ff';
+                bubble.style.color = 'white';
+                bubble.style.borderRadius = '15px 15px 0 15px';
+            } else {
+                bubble.style.background = 'white';
+                bubble.style.borderRadius = '15px 15px 15px 0';
+            }
+
+            bubble.textContent = text;
+            msgDiv.appendChild(bubble);
+            chatHistory.appendChild(msgDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        function handleSend() {
+            const text = chatInput.value.trim();
+            if (!text) return;
+
+            addMessage(text, 'user');
+            chatInput.value = '';
+
+            // Mock Bot Response
+            setTimeout(() => {
+                const responses = [
+                    "That's a great question! Let's break it down...",
+                    "I can help with that. Have you looking into the documentation?",
+                    "Interesting! Tell me more about what you're trying to achieve.",
+                    "Keep going! You're doing great with your learning path."
+                ];
+                const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+                addMessage(randomResponse, 'bot');
+            }, 1000);
+        }
+
+        sendBtn.addEventListener('click', handleSend);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleSend();
+        });
+    </script>
+</body>
+
+</html>

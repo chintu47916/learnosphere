@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Courses | LearnoSphere</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="dashboard-body">
+    {% include 'sidebar.html' ignore missing %}
+
+    <main class="main-content">
+        <header class="dashboard-header">
+            <h2>📚 Available Courses</h2>
+            <a href="/" class="btn" style="width: auto;">Back to Dashboard</a>
+        </header>
+
+        <div class="courses-grid"
+            style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+
+            {% for course in courses %}
+            <div class="card">
+                <h3>{{ course.icon }} {{ course.title }}</h3>
+                <p>{{ course.description }}</p>
+
+                {% if course.status == 'in-progress' or course.status == 'completed' %}
+                <div class="progress-container">
+                    <div class="progress-fill" data-width="{{ course.progress }}"></div>
+                </div>
+                {% endif %}
+
+                {% if course.status == 'completed' %}
+                <button class="btn">Review Course</button>
+                {% elif course.status == 'in-progress' %}
+                <button class="btn">Continue Learning</button>
+                {% else %}
+                <button class="btn" style="background: #ccc; cursor: not-allowed;">Locked</button>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+        </div>
+    </main>
+    <script>
+        // Apply dynamic widths from data attributes (fixes linter errors with inline Jinja)
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('[data-width]').forEach(el => {
+                el.style.width = el.getAttribute('data-width') + '%';
+            });
+        });
+    </script>
+</body>
+
+</html>

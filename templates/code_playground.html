@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Playground | LearnoSphere</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/clike/clike.min.js"></script>
+    <style>
+        .CodeMirror {
+            height: 450px;
+            font-size: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .language-select {
+            padding: 8px 15px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .run-btn {
+            background: #2ed573;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .run-btn:hover {
+            background: #26de81;
+        }
+
+        .code-output {
+            background: #2d3436;
+            color: #dfe6e9;
+            padding: 15px;
+            font-family: 'Consolas', monospace;
+            min-height: 150px;
+            margin-top: 15px;
+            border-radius: 8px;
+            white-space: pre-wrap;
+            border: 1px solid #57606f;
+        }
+
+        .output-header {
+            background: #57606f;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px 8px 0 0;
+            font-weight: 600;
+            margin-bottom: -1px;
+        }
+    </style>
+</head>
+
+<body class="dashboard-body">
+    <nav class="sidebar">
+        <div class="brand">
+            <h1>🚀 LearnoSphere</h1>
+        </div>
+        <ul class="nav-links">
+            <li><a href="/">Dashboard</a></li>
+            <li><a href="/courses">Courses</a></li>
+            <li><a href="/tools/concept-generator">🧠 Concept Generator</a></li>
+            <li class="active"><a href="/tools/code-playground">💻 Code Playground</a></li>
+            <li><a href="/tools/visuals">📊 Visual Learning</a></li>
+            <li><a href="/tools/audio-player">🔊 Audio Player</a></li>
+            <li><a href="/community">Community</a></li>
+        </ul>
+        <div class="user-profile-mini">
+            <img src="{{ user.picture }}" alt="Profile" class="avatar-small">
+            <span>{{ user.name }}</span>
+            <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <header class="dashboard-header">
+            <h2>💻 Code Playground</h2>
+            <p style="margin: 5px 0; color: #666;">Write and execute Python or C code in real-time</p>
+        </header>
+
+        <div class="card" style="margin: 20px;">
+            <div class="controls">
+                <select id="languageSelect" class="language-select" onchange="changeLanguage()">
+                    <option value="python">Python</option>
+                    <option value="c">C</option>
+                </select>
+                <button class="run-btn" onclick="runCode()">▶ Run Code</button>
+            </div>
+
+            <textarea id="codeEditor"># Write Python code here
+print("Hello from LearnoSphere!")
+
+def factorial(n):
+    if n == 0: return 1
+    return n * factorial(n-1)
+
+print(f"Factorial of 5: {factorial(5)}")
+</textarea>
+
+            <div class="output-header">💬 Console Output</div>
+            <div id="consoleOutput" class="code-output">// Output will appear here...</div>
+        </div>
+    </main>
+
+    <script>
+        let editor = CodeMirror.fromTextArea(document.getElementById("codeEditor"), {
+            mode: "python",
+            theme: "monokai",
+            lineNumbers: true,
+            indentUnit: 4,
+            tabSize: 4,
+            indentWithTabs: false
+        });
+
+        const pythonSample = `# Write Python code here
+print("Hello from LearnoSphere!")
+
+def factorial(n):
+    if n == 0: return 1
+    return n * factorial(n-1)
+
+print(f"Factorial of 5: {factorial(5)}")`;
+
+        const cSample = `#include <stdio.h>
+
+int factorial(int n) {
+    if (n == 0) return 1;
+    return n * factorial(n - 1);
+}
+
+int main() {
+    printf("Hello from LearnoSphere!\\n");
+    printf("Factorial of 5: %d\\n", factorial(5));
+    return 0;
+}`;
+
+        function changeLanguage() {
+            const lang = document.getElementById('languageSelect').value;
+            if (lang === 'python') {
+                editor.setOption('mode', 'python');
+                editor.setValue(pythonSample);
+            } else if (lang === 'c') {
+                editor.setOption('mode', 'text/x-csrc');
+                editor.setValue(cSample);
+            }
+        }
+
+        async function runCode() {
+            const code = editor.getValue();
+            const lang = document.getElementById('languageSelect').value;
+            const consoleDiv = document.getElementById('consoleOutput');
+            consoleDiv.innerText = "⏳ Running...";
+
+            try {
+                const response = await fetch('/tools/run-code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: code, language: lang })
+                });
+                const data = await response.json();
+                consoleDiv.innerText = data.output || data.error || "No output";
+            } catch (error) {
+                consoleDiv.innerText = "❌ Error: " + error;
+            }
+        }
+    </script>
+</body>
+
+</html>

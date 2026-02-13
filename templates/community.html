@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community | LearnoSphere</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="dashboard-body">
+    <main class="main-content">
+        <header class="dashboard-header">
+            <h2>👥 Community Forum</h2>
+            <a href="/" class="btn" style="width: auto;">Back to Dashboard</a>
+        </header>
+
+        <div class="card">
+            <h3>Recent Discussions</h3>
+            <ul class="activity-list">
+                <li class="activity-item">
+                    <strong>User123</strong>: "How do I solve the recursion problem in the Algorithms course?"
+                    <span class="activity-time">2 mins ago</span>
+                </li>
+                <li class="activity-item">
+                    <strong>DevGuru</strong>: "Check out this new Python resource!"
+                    <span class="activity-time">1 hour ago</span>
+                </li>
+            </ul>
+            <button class="btn" style="margin-top: 20px;">Start New Topic</button>
+        </div>
+    </main>
+</body>
+
+</html>

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learning Tools | LearnoSphere</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- MathJax for rendering math -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <!-- CodeMirror for code editor -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
+    <!-- Plotly for visuals -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+    <style>
+        .tools-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .tool-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .tool-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .tool-header h2 {
+            margin: 0;
+            color: #333;
+        }
+
+        /* Concept Generator Styles */
+        .concept-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .concept-input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .concept-btn {
+            padding: 10px 20px;
+            background: #0072ff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .concept-output {
+            display: none;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #0072ff;
+        }
+
+        .concept-section {
+            margin-bottom: 15px;
+        }
+
+        .concept-section h4 {
+            margin-top: 0;
+            color: #555;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+        }
+
+        /* Code Playground Styles */
+        .code-editor-container {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .CodeMirror {
+            height: 300px;
+            font-size: 14px;
+        }
+
+        .run-bar {
+            background: #f0f0f0;
+            padding: 8px;
+            display: flex;
+            justify-content: flex-end;
+            border-top: 1px solid #ddd;
+        }
+
+        .run-btn {
+            background: #2ed573;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .code-output {
+            background: #2d3436;
+            color: #f1f2f6;
+            padding: 10px;
+            font-family: monospace;
+            min-height: 100px;
+            margin-top: 10px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+        }
+
+        /* Audio Player */
+        .audio-controls {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .speak-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body class="dashboard-body">
+    {% include 'sidebar.html' ignore missing %}
+
+    <main class="main-content">
+        <header class="dashboard-header">
+            <h2>🛠️ AI Learning Tools</h2>
+            <a href="/" class="btn" style="width: auto;">Back to Dashboard</a>
+        </header>
+
+        <div class="tools-container">
+
+            <!-- 6. Concept Generator -->
+            <div class="tool-card" id="concept-generator">
+                <div class="tool-header">
+                    <h2>🧠 Concept Generator (AI Powered)</h2>
+                </div>
+                <div class="concept-input-group">
+                    <input type="text" id="topicInput" class="concept-input"
+                        placeholder="Enter a topic (e.g., Logistic Regression, Recursion)..."
+                        value="Logistic Regression">
+                    <button class="concept-btn" onclick="generateConcept()">Generate Explanation</button>
+                </div>
+
+                <div id="conceptOutput" class="concept-output">
+                    <div class="audio-controls" style="float: right;">
+                        <button class="speak-btn" onclick="speakExplanation()">🔊 Listen</button>
+                    </div>
+
+                    <div class="concept-section">
+                        <h4>Simple Explanation</h4>
+                        <p id="descSimple">Loading...</p>
+                    </div>
+
+                    <div class="concept-section">
+                        <h4>Mathematical Intuition</h4>
+                        <p id="descMath">Loading...</p>
+                    </div>
+
+                    <div class="concept-section">
+                        <h4>Real-World Example</h4>
+                        <p id="descRealWorld">Loading...</p>
+                    </div>
+
+                    <div class="concept-section">
+                        <h4>Python Code Implementation</h4>
+                        <pre
+                            style="background: #2d3436; color: white; padding: 10px; border-radius: 5px; overflow-x: auto;"><code id="descCode">Loading...</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. Code Playground -->
+            <div class="tool-card" id="code-playground">
+                <div class="tool-header">
+                    <h2>💻 Code Playground (Hackathon Mode)</h2>
+                </div>
+                <p style="margin-bottom: 10px; color: #666; font-size: 0.9rem;">Write Python code below and click Run.
+                    (Restricted Environment)</p>
+                <div class="code-editor-container">
+                    <textarea id="codeEditor"># Write your Python code here
+print("Hello, Infinity Hackers!")
+
+def factorial(n):
+    if n == 0: return 1
+    return n * factorial(n-1)
+
+print(f"5! = {factorial(5)}")
+</textarea>
+                </div>
+                <div class="run-bar">
+                    <button class="run-btn" onclick="runCode()">▶ Run Code</button>
+                </div>
+                <div id="consoleOutput" class="code-output">// Output will appear here...</div>
+            </div>
+
+            <!-- 8. Visual Learning Panel -->
+            <div class="tool-card" id="visual-panel">
+                <div class="tool-header">
+                    <h2>📊 Visual Learning Panel</h2>
+                    <select id="visualSelect" style="padding: 5px; border-radius: 5px;" onchange="updateVisual()">
+                        <option value="logistic">Logistic Regression Decision Boundary</option>
+                        <option value="loss">Loss Curve Animation</option>
+                    </select>
+                </div>
+                <div id="plotDiv" style="width: 100%; height: 400px; border: 1px solid #eee;"></div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // Init CodeMirror
+        var editor = CodeMirror.fromTextArea(document.getElementById("codeEditor"), {
+            mode: "python",
+            lineNumbers: true,
+            theme: "default"
+        });
+
+        // 6. Concept Generator Logic
+        async function generateConcept() {
+            const topic = document.getElementById('topicInput').value;
+            const outputDiv = document.getElementById('conceptOutput');
+            outputDiv.style.display = 'block';
+
+            // Show loading state
+            document.getElementById('descSimple').innerText = "Generating...";
+
+            try {
+                const response = await fetch('/tools/generate-concept', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ topic: topic })
+                });
+                const data = await response.json();
+
+                document.getElementById('descSimple').innerText = data.simple_explanation;
+                document.getElementById('descMath').innerHTML = `$$${data.math_intuition}$$`; // MathJax format
+                document.getElementById('descRealWorld').innerText = data.real_world_example;
+                document.getElementById('descCode').innerText = data.python_code;
+
+                // Re-render MathJax
+                MathJax.typesetPromise();
+
+            } catch (error) {
+                document.getElementById('descSimple').innerText = "Error generating concept.";
+            }
+        }
+
+        // 7. Code Playground Logic (Server-side Exec)
+        async function runCode() {
+            const code = editor.getValue();
+            const consoleDiv = document.getElementById('consoleOutput');
+            consoleDiv.innerText = "Running...";
+
+            try {
+                const response = await fetch('/tools/run-code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: code })
+                });
+                const data = await response.json();
+                consoleDiv.innerText = data.output;
+            } catch (error) {
+                consoleDiv.innerText = "Error running code: " + error;
+            }
+        }
+
+        // 8. Visual Panel Logic (Plotly)
+        function updateVisual() {
+            const type = document.getElementById('visualSelect').value;
+            if (type === 'logistic') {
+                // Sigmoid / Decision Boundary Plot
+                const x = [];
+                const y = [];
+                for (let i = -6; i <= 6; i += 0.1) {
+                    x.push(i);
+                    y.push(1 / (1 + Math.exp(-i)));
+                }
+                const trace = { x: x, y: y, type: 'scatter', name: 'Sigmoid' };
+                const layout = { title: 'Logistic Regression Sigmoid Function' };
+                Plotly.newPlot('plotDiv', [trace], layout);
+            } else if (type === 'loss') {
+                // Loss Curve
+                const epochs = Array.from({ length: 20 }, (_, i) => i + 1);
+                const loss = epochs.map(e => 1 / e + (Math.random() * 0.1));
+                const trace = { x: epochs, y: loss, type: 'scatter', mode: 'lines+markers', name: 'Loss' };
+                const layout = { title: 'Training Loss over Epochs', xaxis: { title: 'Epoch' }, yaxis: { title: 'Loss' } };
+                Plotly.newPlot('plotDiv', [trace], layout);
+            }
+        }
+
+        // Init default visual
+        updateVisual();
+
+        // 9. Audio Lesson Logic (Web Speech API)
+        function speakExplanation() {
+            const text = document.getElementById('descSimple').innerText;
+            if (!text || text === "Loading...") return;
+
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert("Text-to-Speech not supported in this browser.");
+            }
+        }
+    </script>
+</body>
+
+</html>

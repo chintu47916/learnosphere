@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile | LearnoSphere</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="dashboard-body">
+    <main class="main-content">
+        <header class="dashboard-header">
+            <h2>✏️ Edit Profile</h2>
+            <a href="/" class="btn" style="width: auto;">Back to Dashboard</a>
+        </header>
+
+        <div class="card" style="max-width: 500px; margin: 0 auto;">
+            <form action="/profile/edit" method="POST">
+                <div class="input-group">
+                    <input type="text" name="name" value="{{ user.name }}" required
+                        style="border-color: #ccc; color: #333;">
+                    <label
+                        style="color: #666; top: -10px; font-size: 12px; left: 10px; background: white; padding: 0 5px;">Name</label>
+                </div>
+
+                <div class="input-group">
+                    <input type="email" name="email" value="{{ user.email }}" disabled
+                        style="border-color: #ccc; color: #777; cursor: not-allowed;">
+                    <label
+                        style="color: #666; top: -10px; font-size: 12px; left: 10px; background: white; padding: 0 5px;">Email</label>
+                </div>
+
+                <div class="input-group">
+                    <textarea name="bio" placeholder="Tell us about yourself..."
+                        style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-family: 'Segoe UI';"></textarea>
+                </div>
+
+                <button type="submit" class="btn">Update Profile</button>
+            </form>
+        </div>
+    </main>
+</body>
+
+</html>

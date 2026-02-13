@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | LearnoSphere</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body class="dashboard-body">
+
+    <!-- Sidebar/Navigation -->
+    <nav class="sidebar">
+        <div class="brand">
+            <h1>🚀 LearnoSphere</h1>
+        </div>
+        <ul class="nav-links">
+            <li class="active"><a href="/">Dashboard</a></li>
+            <li><a href="/courses">Courses</a></li>
+            <li><a href="/tools/concept-generator">🛠️ Learning Tools</a></li>
+            <li><a href="/community">Community</a></li>
+            <li><a href="/settings">Settings</a></li>
+        </ul>
+        <div class="user-profile-mini">
+            <img src="{{ user.picture }}" alt="Profile" class="avatar-small">
+            <span>{{ user.name }}</span>
+            <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="welcome-text">
+                <h2>Welcome back, {{ user.name }}! 👋</h2>
+                <p>Ready to continue your learning journey?</p>
+            </div>
+            <div class="header-actions">
+                <button class="icon-btn notification-btn">
+                    🔔 <span class="badge">3</span>
+                </button>
+                <div class="adaptive-level">
+                    <span>Level: {{ user_stats.level }}</span>
+                    <div class="xp-bar">
+                        <div class="xp-progress" data-width="{{ user_stats.xp_percentage }}"></div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
+
+            <!-- Left Column -->
+            <div class="grid-column left">
+                <!-- Daily Goal -->
+                <div class="card daily-goal">
+                    <h3>🎯 Daily Goal</h3>
+                    <ul class="goal-list" style="list-style: none;">
+                        {% for goal in daily_goals %}
+                        <li class="goal-item {{ 'completed' if goal.completed else '' }}"
+                            style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+                            <input type="checkbox" {% if goal.completed %}checked{% endif %} disabled>
+                            <span class="goal-text">{{ goal.task }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <!-- Learning Path -->
+                <div class="card learning-path">
+                    <h3>🗺️ Learning Path</h3>
+                    <ul class="path-list">
+                        {% for step in learning_path %}
+                        <li class="path-item {{ step.status }}">
+                            <div class="step-icon">{{ step.icon }}</div>
+                            <div class="step-info" style="flex-grow: 1;">
+                                <h4>{{ step.title }}</h4>
+                                <span class="step-desc">{{ step.description }}</span>
+                                {% if step.status == 'in-progress' or step.status == 'completed' %}
+                                <div class="progress-container">
+                                    <div class="progress-fill" data-width="{{ step.progress }}"></div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Center Column -->
+            <div class="grid-column center">
+                <!-- Progress Tracker -->
+                <div class="card progress-tracker">
+                    <h3>📈 Your Progress</h3>
+                    <div class="progress-stats">
+                        <div class="stat-box">
+                            <span class="stat-value">{{ user_stats.courses_completed }}</span>
+                            <span class="stat-label">Courses Completed</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-value">{{ user_stats.hours_learned }}</span>
+                            <span class="stat-label">Hours Learned</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-value">{{ user_stats.streak }}</span>
+                            <span class="stat-label">Day Streak 🔥</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="card recent-activity">
+                    <h3>🕒 Recent Activity</h3>
+                    <ul class="activity-list">
+                        {% for group in recent_activity %}
+                        <li class="activity-date" style="font-weight: bold; margin-bottom: 10px; color: #333;">{{
+                            group.date }}</li>
+                        {% for item in group['items'] %}
+                        <li class="activity-item"
+                            style="margin-left: 10px; border-left: 2px solid #eee; padding-left: 10px;">
+                            <span class="activity-time">{{ item.time }}</span>
+                            <p>{{ item.description }}</p>
+                        </li>
+                        {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <!-- Quiz Analytics -->
+                <div class="card quiz-analytics">
+                    <h3>🧠 Quiz Performance</h3>
+                    <canvas id="quizChart"></canvas> <!-- Placeholder for Chart.js -->
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="grid-column right">
+                <!-- User Profile Panel (Detailed) -->
+                <div class="card profile-panel">
+                    <div class="profile-header">
+                        <img src="{{ user.picture }}" alt="Profile">
+                        <h3>{{ user.name }}</h3>
+                        <p class="role">Student</p>
+                    </div>
+                    <div class="xp-bar" style="margin: 15px 0;">
+                        <div class="xp-progress" data-width="{{ user_stats.xp_percentage }}"></div>
+                    </div>
+                    <a href="/profile/edit" class="btn edit-profile-btn"
+                        style="display:inline-block; text-decoration:none;">Edit Profile</a>
+                </div>
+
+                <!-- AI Tutor Button -->
+                <div class="card ai-tutor">
+                    <div class="ai-content">
+                        <h3>🤖 AI Tutor</h3>
+                        <p>Stuck on a problem?</p>
+                        <a href="/ai-tutor" class="btn ai-btn" style="display:inline-block; text-decoration:none;">Ask
+                            AI Tutor</a>
+                    </div>
+                </div>
+
+                <!-- Notifications Panel -->
+                <div class="card notifications-panel">
+                    <h3>🔔 Notifications</h3>
+                    <ul class="notif-list">
+                        {% for notif in notifications %}
+                        <li class="notif-item {{ 'unread' if not notif.read else '' }}">
+                            <span class="notif-text">{{ notif.message }}</span>
+                            <span class="notif-time">{{ notif.time_ago }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // Apply dynamic widths from data attributes (fixes linter errors with inline Jinja)
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('[data-width]').forEach(el => {
+                el.style.width = el.getAttribute('data-width') + '%';
+            });
+        });
+
+        // Mock Chart.js implementation for Quiz Analytics
+        const ctx = document.getElementById('quizChart').getContext('2d');
+        const quizChart = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: ['Python', 'Data Structures', 'Algorithms', 'Web Dev', 'Databases'],
+                datasets: [{
+                    label: 'Skill Level',
+                    data: [85, 70, 60, 90, 75],
+                    fill: true,
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgb(54, 162, 235)',
+                    pointBackgroundColor: 'rgb(54, 162, 235)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgb(54, 162, 235)'
+                }]
+            },
+            options: {
+                elements: {
+                    line: {
+                        borderWidth: 3
+                    }
+                },
+                scales: {
+                    r: {
+                        angleLines: {
+                            display: false
+                        },
+                        suggestedMin: 0,
+                        suggestedMax: 100
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

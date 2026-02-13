@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Lesson Player | LearnoSphere</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .audio-container {
+            max-width: 800px;
+            margin: 20px auto;
+        }
+
+        .text-input {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+        }
+
+        .controls-bar {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            align-items: center;
+        }
+
+        .play-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .play-btn:hover {
+            background: #ff6b81;
+        }
+
+        .stop-btn {
+            background: #747d8c;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .stop-btn:hover {
+            background: #57606f;
+        }
+
+        .voice-select {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .speed-slider {
+            width: 150px;
+        }
+
+        .char-count {
+            color: #666;
+            font-size: 14px;
+            margin-left: auto;
+        }
+    </style>
+</head>
+
+<body class="dashboard-body">
+    <nav class="sidebar">
+        <div class="brand">
+            <h1>🚀 LearnoSphere</h1>
+        </div>
+        <ul class="nav-links">
+            <li><a href="/">Dashboard</a></li>
+            <li><a href="/courses">Courses</a></li>
+            <li><a href="/tools/concept-generator">🧠 Concept Generator</a></li>
+            <li><a href="/tools/code-playground">💻 Code Playground</a></li>
+            <li><a href="/tools/visuals">📊 Visual Learning</a></li>
+            <li class="active"><a href="/tools/audio-player">🔊 Audio Player</a></li>
+            <li><a href="/community">Community</a></li>
+        </ul>
+        <div class="user-profile-mini">
+            <img src="{{ user.picture }}" alt="Profile" class="avatar-small">
+            <span>{{ user.name }}</span>
+            <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <header class="dashboard-header">
+            <h2>🔊 Audio Lesson Player</h2>
+            <p style="margin: 5px 0; color: #666;">Convert any text to speech for better learning</p>
+        </header>
+
+        <div class="card audio-container">
+            <h3 style="margin-bottom: 10px;">Enter Your Text</h3>
+            <textarea id="textInput" class="text-input"
+                placeholder="Paste or write any text here to convert it to audio...">Machine learning is a subset of artificial intelligence that enables computers to learn and improve from experience without being explicitly programmed. It focuses on developing algorithms that can access data and use it to learn for themselves.</textarea>
+
+            <div class="controls-bar">
+                <button class="play-btn" onclick="playAudio()">
+                    <span id="playIcon">🔊</span> Play Audio
+                </button>
+                <button class="stop-btn" onclick="stopAudio()">⏹ Stop</button>
+
+                <select id="voiceSelect" class="voice-select">
+                    <option value="">Loading voices...</option>
+                </select>
+
+                <div class="speed-control">
+                    <label>Speed:</label>
+                    <input type="range" id="speedSlider" class="speed-slider" min="0.5" max="2" step="0.1" value="1">
+                    <span id="speedValue">1x</span>
+                </div>
+
+                <span class="char-count"><span id="charCount">0</span> characters</span>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let voices = [];
+        let currentUtterance = null;
+
+        // Load voices
+        function loadVoices() {
+            voices = window.speechSynthesis.getVoices();
+            const voiceSelect = document.getElementById('voiceSelect');
+            voiceSelect.innerHTML = '';
+
+            voices.forEach((voice, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `${voice.name} (${voice.lang})`;
+                if (voice.default) option.selected = true;
+                voiceSelect.appendChild(option);
+            });
+        }
+
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = loadVoices;
+        }
+        loadVoices();
+
+        // Update character count
+        document.getElementById('textInput').addEventListener('input', function () {
+            document.getElementById('charCount').textContent = this.value.length;
+        });
+        document.getElementById('charCount').textContent = document.getElementById('textInput').value.length;
+
+        // Speed slider
+        document.getElementById('speedSlider').addEventListener('input', function () {
+            document.getElementById('speedValue').textContent = this.value + 'x';
+        });
+
+        function playAudio() {
+            const text = document.getElementById('textInput').value.trim();
+            if (!text) {
+                alert('Please enter some text');
+                return;
+            }
+
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); // Stop any ongoing speech
+
+                currentUtterance = new SpeechSynthesisUtterance(text);
+
+                const voiceIndex = document.getElementById('voiceSelect').value;
+                if (voiceIndex && voices[voiceIndex]) {
+                    currentUtterance.voice = voices[voiceIndex];
+                }
+
+                currentUtterance.rate = parseFloat(document.getElementById('speedSlider').value);
+                currentUtterance.pitch = 1;
+                currentUtterance.volume = 1;
+
+                currentUtterance.onstart = () => {
+                    document.getElementById('playIcon').textContent = '🔊';
+                };
+
+                currentUtterance.onend = () => {
+                    document.getElementById('playIcon').textContent = '✅';
+                    setTimeout(() => {
+                        document.getElementById('playIcon').textContent = '🔊';
+                    }, 2000);
+                };
+
+                window.speechSynthesis.speak(currentUtterance);
+            } else {
+                alert("Text-to-Speech is not supported in this browser. Please try Chrome or Edge.");
+            }
+        }
+
+        function stopAudio() {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                document.getElementById('playIcon').textContent = '🔊';
+            }
+        }
+    </script>
+</body>
+
+</html>

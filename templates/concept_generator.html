@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Concept Generator | LearnoSphere</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        .concept-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .concept-input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .level-select {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+        }
+
+        .concept-btn {
+            padding: 12px 30px;
+            background: #0072ff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .concept-btn:hover {
+            background: #0056cc;
+        }
+
+        .concept-output {
+            display: none;
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .concept-section {
+            margin-bottom: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .concept-section h3 {
+            margin-top: 0;
+            color: #0072ff;
+            font-size: 1.2rem;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .audio-controls {
+            float: right;
+        }
+
+        .speak-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        pre code {
+            display: block;
+            background: #2d3436;
+            color: #dfe6e9;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .quiz-section {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+        }
+
+        .challenge-section {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .pros-cons-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .pros {
+            background: #d4edda;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 3px solid #28a745;
+        }
+
+        .cons {
+            background: #f8d7da;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 3px solid #dc3545;
+        }
+    </style>
+</head>
+
+<body class="dashboard-body">
+    <nav class="sidebar">
+        <div class="brand">
+            <h1>🚀 LearnoSphere</h1>
+        </div>
+        <ul class="nav-links">
+            <li><a href="/">Dashboard</a></li>
+            <li><a href="/courses">Courses</a></li>
+            <li class="active"><a href="/tools/concept-generator">🧠 Concept Generator</a></li>
+            <li><a href="/tools/code-playground">💻 Code Playground</a></li>
+            <li><a href="/tools/visuals">📊 Visual Learning</a></li>
+            <li><a href="/tools/audio-player">🔊 Audio Player</a></li>
+            <li><a href="/community">Community</a></li>
+        </ul>
+        <div class="user-profile-mini">
+            <img src="{{ user.picture }}" alt="Profile" class="avatar-small">
+            <span>{{ user.name }}</span>
+            <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <header class="dashboard-header">
+            <h2>🧠 AI Concept Generator - ML Professor Mode</h2>
+            <p style="margin: 5px 0; color: #666;">Get comprehensive, professor-level explanations for any concept</p>
+        </header>
+
+        <div class="card" style="margin: 20px;">
+            <div class="concept-input-group">
+                <input type="text" id="topicInput" class="concept-input"
+                    placeholder="Enter a concept (e.g., Gradient Descent, Neural Networks, Binary Search)...">
+                <select id="levelSelect" class="level-select">
+                    <option value="Beginner">🌱 Beginner</option>
+                    <option value="Intermediate" selected>⚡ Intermediate</option>
+                    <option value="Advanced">🚀 Advanced</option>
+                </select>
+                <button class="concept-btn" onclick="generateConcept()">Generate Lesson</button>
+            </div>
+
+            <div id="conceptOutput" class="concept-output">
+                <div class="audio-controls">
+                    <button class="speak-btn" onclick="speakSummary()">🔊 Listen</button>
+                </div>
+
+                <div class="concept-section">
+                    <h3>📝 Summary</h3>
+                    <p id="descSummary">Loading...</p>
+                </div>
+
+                <div class="concept-section">
+                    <h3>🌍 Real-World Analogy</h3>
+                    <p id="descAnalogy">Loading...</p>
+                </div>
+
+                <div class="concept-section">
+                    <h3>🔬 Technical Explanation</h3>
+                    <div id="descTechnical">Loading...</div>
+                </div>
+
+                <div class="concept-section" id="mathSection" style="display: none;">
+                    <h3>🔢 Mathematical Formulation</h3>
+                    <div id="descMath">Loading...</div>
+                </div>
+
+                <div class="concept-section">
+                    <h3>📋 Step-by-Step Process</h3>
+                    <div id="descSteps">Loading...</div>
+                </div>
+
+                <div class="concept-section">
+                    <h3>💻 Python Implementation</h3>
+                    <pre><code id="descCode">Loading...</code></pre>
+                </div>
+
+                <div class="concept-section">
+                    <h3>🏢 Real-World Use Case</h3>
+                    <div id="descUsecase">Loading...</div>
+                </div>
+
+                <div class="concept-section">
+                    <h3>⚖️ Advantages & Disadvantages</h3>
+                    <div id="descProsCons">Loading...</div>
+                </div>
+
+                <div class="concept-section quiz-section">
+                    <h3>❓ Knowledge Check - Quiz Questions</h3>
+                    <div id="descQuiz">Loading...</div>
+                </div>
+
+                <div class="concept-section challenge-section">
+                    <h3>🎯 Coding Challenge</h3>
+                    <pre><code id="descChallenge">Loading...</code></pre>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        async function generateConcept() {
+            const topic = document.getElementById('topicInput').value;
+            const level = document.getElementById('levelSelect').value;
+
+            if (!topic.trim()) {
+                alert('Please enter a concept/topic');
+                return;
+            }
+
+            const outputDiv = document.getElementById('conceptOutput');
+            outputDiv.style.display = 'block';
+            document.getElementById('descSummary').innerHTML = '<div class="loading">🤖 Your AI Professor is preparing a comprehensive lesson...</div>';
+
+            try {
+                const response = await fetch('/tools/generate-concept', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ topic: topic, level: level })
+                });
+                const data = await response.json();
+
+                if (data.error) {
+                    document.getElementById('descSummary').innerText = "Error: " + data.error;
+                    return;
+                }
+
+                // Populate all sections
+                document.getElementById('descSummary').innerText = data.summary || 'N/A';
+                document.getElementById('descAnalogy').innerText = data.analogy || 'N/A';
+                document.getElementById('descTechnical').innerText = data.technical || 'N/A';
+                document.getElementById('descSteps').innerText = data.steps || 'N/A';
+                document.getElementById('descCode').innerText = data.code || '# No code provided';
+                document.getElementById('descUsecase').innerText = data.usecase || 'N/A';
+                document.getElementById('descProsCons').innerText = data.pros_cons || 'N/A';
+                document.getElementById('descQuiz').innerText = data.quiz || 'No quiz generated';
+                document.getElementById('descChallenge').innerText = data.challenge || '# No challenge provided';
+
+                // Conditionally show math section
+                const mathSection = document.getElementById('mathSection');
+                const mathContent = data.math || '';
+
+                if (mathContent && mathContent.trim() && mathContent.length > 10) {
+                    mathSection.style.display = 'block';
+                    document.getElementById('descMath').innerHTML = `$$${mathContent}$$`;
+
+                    // Re-render MathJax
+                    if (typeof MathJax !== 'undefined') {
+                        MathJax.typesetPromise();
+                    }
+                } else {
+                    mathSection.style.display = 'none';
+                }
+
+                // Scroll to output
+                outputDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            } catch (error) {
+                document.getElementById('descSummary').innerText = "Error connecting to AI service. Please check your API key and try again.";
+                console.error('Error:', error);
+            }
+        }
+
+        function speakSummary() {
+            const text = document.getElementById('descSummary').innerText;
+            if (!text || text.includes('Loading') || text.includes('thinking')) return;
+
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.9;
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert("Text-to-Speech not supported in this browser.");
+            }
+        }
+    </script>
+</body>
+
+</html>
