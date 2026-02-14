@@ -41,6 +41,9 @@
                 <p>Ready to continue your learning journey?</p>
             </div>
             <div class="header-actions">
+                <div class="coin-display" title="Your Balance">
+                    💰 <span class="coin-count">{{ user_stats.coins }}</span>
+                </div>
                 <button class="icon-btn notification-btn">
                     🔔 <span class="badge">3</span>
                 </button>
@@ -60,16 +63,36 @@
             <div class="grid-column left">
                 <!-- Daily Goal -->
                 <div class="card daily-goal">
-                    <h3>🎯 Daily Goal</h3>
-                    <ul class="goal-list" style="list-style: none;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="margin:0;">🎯 Daily Goal</h3>
+                        <span style="font-size: 14px; font-weight: bold; color: #6c5ce7;">
+                            {{ daily_goals[0].count }} / 2
+                        </span>
+                    </div>
+
+                    <div class="goal-progress-container" style="margin-bottom: 20px;">
+                        <div class="goal-progress" data-width="{{ daily_goals[0].progress }}"></div>
+                    </div>
+
+                    <ul class="goal-list" style="list-style: none; padding: 0;">
                         {% for goal in daily_goals %}
                         <li class="goal-item {{ 'completed' if goal.completed else '' }}"
-                            style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
-                            <input type="checkbox" {% if goal.completed %}checked{% endif %} disabled>
+                            style="margin-bottom: 12px; display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 8px; background: rgba(0,0,0,0.02);">
+                            <div class="goal-checkbox {{ 'checked' if goal.completed else '' }}">
+                                {% if goal.completed %}✓{% endif %}
+                            </div>
                             <span class="goal-text">{{ goal.task }}</span>
                         </li>
                         {% endfor %}
                     </ul>
+
+                    {% if daily_goals[0].completed %}
+                    <div class="goal-reward-notif"
+                        style="margin-top: 15px; padding: 10px; background: #e3fcef; color: #00b894; border-radius: 8px; font-size: 13px; font-weight: bold; text-align: center;">
+                        🎉 Goal Reached! +50 Coins Earned
+                    </div>
+                    {% endif %}
                 </div>
 
                 <!-- Learning Path -->

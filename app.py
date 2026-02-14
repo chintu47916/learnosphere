@@ -1,4 +1,5 @@
 import os
+import datetime
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_session import Session
 from authlib.integrations.flask_client import OAuth
@@ -137,6 +138,63 @@ def call_gemini_v2(prompt):
                 pass
     
     return "Error: All AI models failed. Please verify your API key is valid (active) and has 'Generative Language API' enabled in Google Cloud Console."
+
+# --- Goal & Reward Logic ---
+def update_daily_progress(email):
+    """Increments the daily task counter and awards coins if goal is met."""
+    today = datetime.date.today().isoformat()
+    coins_awarded = 0
+    
+    # 1. Update in Session (Local)
+    if 'daily_goal_data' not in session:
+        session['daily_goal_data'] = {"date": today, "count": 0, "coins": 0, "goal_met": False}
+    
+    # Reset if new day
+    if session['daily_goal_data']['date'] != today:
+        session['daily_goal_data'] = {"date": today, "count": 0, "coins": session['daily_goal_data'].get('coins', 0), "goal_met": False}
+        
+    session['daily_goal_data']['count'] += 1
+    
+    # Award coins on 2nd completion
+    if session['daily_goal_data']['count'] == 2 and not session['daily_goal_data']['goal_met']:
+        session['daily_goal_data']['coins'] += 50
+        session['daily_goal_data']['goal_met'] = True
+        coins_awarded = 50
+        print(f"--- REWARD: {email} earned 50 coins! ---")
+        
+    session.modified = True
+    
+    # 2. Update in MongoDB
+    if users_collection is not None:
+        try:
+            user = users_collection.find_one({"email": email})
+            if user:
+                # Initialize fields if missing
+                current_coins = user.get('coins', 0)
+                last_date = user.get('last_goal_date', '')
+                daily_count = user.get('daily_completions', 0)
+                
+                # Reset DB counter if new day
+                if last_date != today:
+                    daily_count = 0
+                
+                daily_count += 1
+                new_coins = current_coins + coins_awarded
+                
+                users_collection.update_one(
+                    {"email": email},
+                    {
+                        "$set": {
+                            "coins": new_coins,
+                            "daily_completions": daily_count,
+                            "last_goal_date": today
+                        }
+                    }
+                )
+        except Exception as e:
+            print(f"--- DB Reward Error: {e} ---")
+            
+    return coins_awarded
 
 # --- Python Course Data ---
 PYTHON_COURSE_TOPICS = [
@@ -521,19 +579,43 @@ def home():
         web_total = len(WEB_COURSE_TOPICS)
         web_progress = int((len(web_completed_ids) / web_total) * 100) if web_total > 0 else 0
 
+        # Fetch actual coins and goals from DB or session
+        user_db_data = {}
+        if users_collection is not None:
+            try:
+                user_db_data = users_collection.find_one({"email": user_email}) or {}
+            except: pass
+            
+        today = datetime.date.today().isoformat()
+        
+        # Safe retrieval with defaults
+        coins = user_db_data.get('coins')
+        if coins is None: coins = session.get('daily_goal_data', {}).get('coins', 0)
+        
+        daily_count = user_db_data.get('daily_completions')
+        if daily_count is None: daily_count = session.get('daily_goal_data', {}).get('count', 0)
+        
+        last_date = user_db_data.get('last_goal_date')
+        if last_date is None: last_date = session.get('daily_goal_data', {}).get('date', '')
+        
+        # Reset visual counter if date mismatch
+        if last_date != today:
+            daily_count = 0
+
         # Mock Data for Dashboard
         user_stats = {
             "level": (len(completed_ids) // 2) + 1,
             "xp_percentage": (len(completed_ids) % 2) * 50,
             "courses_completed": 1 if python_progress == 100 else 0,
             "hours_learned": len(completed_ids) * 0.5,
-            "streak": 1
+            "streak": 1,
+            "coins": coins
         }
         
+        goal_progress = min(int((daily_count / 2) * 100), 100)
         daily_goals = [
-            {"task": "Complete 1 Python Lesson", "completed": len(completed_ids) > 0},
-            {"task": "Solve 2 Coding Challenges", "completed": len(completed_ids) > 1},
-            {"task": "Post in Community Forum", "completed": False}
+            {"task": "Complete 2 Course Topics", "completed": daily_count >= 2, "progress": goal_progress, "count": daily_count},
+            {"task": "Engage with AI Tutor", "completed": len(session.get('chat_history', [])) > 0},
         ]
         
         learning_path = [
@@ -886,6 +968,8 @@ def verify_python_topic():
         if topic_id not in session['python_completed_topics']:
             session['python_completed_topics'].append(topic_id)
             session.modified = True
+            # Update daily progress and award coins
+            update_daily_progress(session['user']['email'])
 
         # Update progress in DB if available
         if python_progress_collection is not None:
@@ -1028,6 +1112,8 @@ def verify_web_topic():
         if topic_id not in session['web_completed_topics']:
             session['web_completed_topics'].append(topic_id)
             session.modified = True
+            # Update daily progress and award coins
+            update_daily_progress(session['user']['email'])
 
         if web_progress_collection is not None:
             try:

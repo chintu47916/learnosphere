@@ -150,8 +150,67 @@ body {
 
 .progress-fill {
     height: 100%;
-    background: #0072ff;
-    border-radius: 2px;
+    background: linear-gradient(90deg, #6c5ce7, #a29bfe);
+    border-radius: 4px;
+    width: 0;
+    transition: width 0.8s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+}
+
+/* Coin Display */
+.coin-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 215, 0, 0.1);
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    font-weight: 700;
+    color: #d4af37;
+    margin-right: 15px;
+}
+
+.coin-count {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Daily Goal Improvements */
+.goal-progress-container {
+    height: 8px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.goal-progress {
+    height: 100%;
+    background: linear-gradient(90deg, #6c5ce7, #00d2ff);
+    border-radius: 4px;
+    width: 0;
+    transition: width 1s ease-out;
+}
+
+.goal-checkbox {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #ddd;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: white;
+    background: white;
+}
+
+.goal-checkbox.checked {
+    background: #00b894;
+    border-color: #00b894;
+}
+
+.goal-item.completed .goal-text {
+    color: #999;
+    text-decoration: line-through;
 }
 
 /* ========================
