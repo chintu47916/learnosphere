@@ -7,129 +7,154 @@
     <title>AI Concept Generator | LearnoSphere</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         .concept-input-group {
             display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 15px;
+            margin-bottom: 30px;
             align-items: center;
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
         }
 
         .concept-input {
             flex: 1;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
+            padding: 14px 20px;
+            border: 1px solid #dfe1e5;
+            border-radius: 24px;
             font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .concept-input:focus {
+            border-color: #0072ff;
         }
 
         .level-select {
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
+            padding: 12px 20px;
+            border: 1px solid #dfe1e5;
+            border-radius: 24px;
+            font-size: 15px;
             background: white;
+            cursor: pointer;
         }
 
         .concept-btn {
-            padding: 12px 30px;
+            padding: 14px 35px;
             background: #0072ff;
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 24px;
             cursor: pointer;
             font-weight: 600;
+            transition: transform 0.2s, background 0.2s;
         }
 
         .concept-btn:hover {
             background: #0056cc;
+            transform: scale(1.02);
         }
 
         .concept-output {
             display: none;
-            background: #f9f9f9;
-            padding: 20px;
-            border-radius: 10px;
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
             margin-top: 20px;
+            line-height: 1.7;
+            font-size: 16px;
+            color: #3c4043;
         }
 
-        .concept-section {
-            margin-bottom: 20px;
-            background: white;
+        .concept-content {
+            margin-top: 15px;
+        }
+
+        .concept-content h1,
+        .concept-content h2,
+        .concept-content h3 {
+            color: #1a73e8;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+
+        .concept-content p {
+            margin-bottom: 15px;
+        }
+
+        .concept-content pre {
+            background: #202124;
+            color: #fff;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            margin: 20px 0;
+            overflow-x: auto;
         }
 
-        .concept-section h3 {
-            margin-top: 0;
-            color: #0072ff;
-            font-size: 1.2rem;
-            border-bottom: 2px solid #f0f0f0;
-            padding-bottom: 10px;
+        .concept-content code {
+            font-family: 'Consolas', monospace;
+            font-size: 14px;
+        }
+
+        .audio-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .speak-btn {
+            background: #f1f3f4;
+            color: #3c4043;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .speak-btn:hover {
+            background: #e8eaed;
         }
 
         .loading {
             text-align: center;
-            padding: 40px;
-            color: #666;
+            padding: 60px;
+            color: #5f6368;
         }
 
-        .audio-controls {
-            float: right;
+        .dot-pulse {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #0072ff;
+            margin: 0 5px;
+            animation: pulse 1.5s infinite ease-in-out;
         }
 
-        .speak-btn {
-            background: #ff4757;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: 600;
-        }
+        @keyframes pulse {
 
-        pre code {
-            display: block;
-            background: #2d3436;
-            color: #dfe6e9;
-            padding: 15px;
-            border-radius: 5px;
-            overflow-x: auto;
-            font-size: 14px;
-            line-height: 1.6;
-        }
+            0%,
+            100% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
 
-        .quiz-section {
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
-        }
-
-        .challenge-section {
-            background: #d1ecf1;
-            border-left: 4px solid #17a2b8;
-        }
-
-        .pros-cons-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-
-        .pros {
-            background: #d4edda;
-            padding: 15px;
-            border-radius: 5px;
-            border-left: 3px solid #28a745;
-        }
-
-        .cons {
-            background: #f8d7da;
-            padding: 15px;
-            border-radius: 5px;
-            border-left: 3px solid #dc3545;
+            50% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
         }
     </style>
 </head>
@@ -157,156 +182,135 @@
 
     <main class="main-content">
         <header class="dashboard-header">
-            <h2>🧠 AI Concept Generator - ML Professor Mode</h2>
-            <p style="margin: 5px 0; color: #666;">Get comprehensive, professor-level explanations for any concept</p>
+            <h2>🧠 AI Concept Generator</h2>
+            <p style="margin: 5px 0; color: #666;">Get clear, Gemini-style explanations for any subject</p>
         </header>
 
-        <div class="card" style="margin: 20px;">
+        <div style="max-width: 1000px; margin: 0 auto; padding: 20px;">
             <div class="concept-input-group">
                 <input type="text" id="topicInput" class="concept-input"
-                    placeholder="Enter a concept (e.g., Gradient Descent, Neural Networks, Binary Search)...">
+                    placeholder="Enter a concept (e.g., Recursion, Photosynthesis, Machine Learning)...">
                 <select id="levelSelect" class="level-select">
                     <option value="Beginner">🌱 Beginner</option>
                     <option value="Intermediate" selected>⚡ Intermediate</option>
                     <option value="Advanced">🚀 Advanced</option>
                 </select>
-                <button class="concept-btn" onclick="generateConcept()">Generate Lesson</button>
+                <button class="concept-btn" onclick="generateConcept()">Generate</button>
             </div>
 
             <div id="conceptOutput" class="concept-output">
                 <div class="audio-controls">
-                    <button class="speak-btn" onclick="speakSummary()">🔊 Listen</button>
+                    <h3 id="outputTitle" style="margin: 0; color: #1a73e8;">Lesson Title</h3>
+                    <button class="speak-btn" onclick="toggleSpeech()">
+                        <span id="speakerIcon">🔊</span> <span id="speakerText">Listen</span>
+                    </button>
                 </div>
 
-                <div class="concept-section">
-                    <h3>📝 Summary</h3>
-                    <p id="descSummary">Loading...</p>
-                </div>
-
-                <div class="concept-section">
-                    <h3>🌍 Real-World Analogy</h3>
-                    <p id="descAnalogy">Loading...</p>
-                </div>
-
-                <div class="concept-section">
-                    <h3>🔬 Technical Explanation</h3>
-                    <div id="descTechnical">Loading...</div>
-                </div>
-
-                <div class="concept-section" id="mathSection" style="display: none;">
-                    <h3>🔢 Mathematical Formulation</h3>
-                    <div id="descMath">Loading...</div>
-                </div>
-
-                <div class="concept-section">
-                    <h3>📋 Step-by-Step Process</h3>
-                    <div id="descSteps">Loading...</div>
-                </div>
-
-                <div class="concept-section">
-                    <h3>💻 Python Implementation</h3>
-                    <pre><code id="descCode">Loading...</code></pre>
-                </div>
-
-                <div class="concept-section">
-                    <h3>🏢 Real-World Use Case</h3>
-                    <div id="descUsecase">Loading...</div>
-                </div>
-
-                <div class="concept-section">
-                    <h3>⚖️ Advantages & Disadvantages</h3>
-                    <div id="descProsCons">Loading...</div>
-                </div>
-
-                <div class="concept-section quiz-section">
-                    <h3>❓ Knowledge Check - Quiz Questions</h3>
-                    <div id="descQuiz">Loading...</div>
-                </div>
-
-                <div class="concept-section challenge-section">
-                    <h3>🎯 Coding Challenge</h3>
-                    <pre><code id="descChallenge">Loading...</code></pre>
+                <div id="conceptContent" class="concept-content">
+                    <!-- AI Content will appear here -->
                 </div>
             </div>
         </div>
     </main>
 
     <script>
+        const chatInput = document.getElementById('topicInput');
+        const outputDiv = document.getElementById('conceptOutput');
+        const contentDiv = document.getElementById('conceptContent');
+        const titleH3 = document.getElementById('outputTitle');
+        let currentUtterance = null;
+
+        marked.setOptions({
+            breaks: true,
+            gfm: true
+        });
+
+        async function typeWriter(text) {
+            contentDiv.innerHTML = '';
+            const tokens = text.split(' ');
+            let currentStr = '';
+
+            for (let i = 0; i < tokens.length; i++) {
+                currentStr += tokens[i] + ' ';
+                contentDiv.innerHTML = marked.parse(currentStr);
+
+                // Simple auto-scroll
+                const bottom = outputDiv.offsetTop + outputDiv.offsetHeight;
+                if (window.scrollY + window.innerHeight < bottom) {
+                    window.scrollTo({ top: bottom - 200, behavior: 'auto' });
+                }
+
+                await new Promise(r => setTimeout(r, 25));
+            }
+        }
+
         async function generateConcept() {
-            const topic = document.getElementById('topicInput').value;
+            const topic = chatInput.value.trim();
             const level = document.getElementById('levelSelect').value;
 
-            if (!topic.trim()) {
-                alert('Please enter a concept/topic');
+            if (!topic) {
+                alert('Please enter a concept to explain');
                 return;
             }
 
-            const outputDiv = document.getElementById('conceptOutput');
+            // Reset UI
+            if (window.speechSynthesis) window.speechSynthesis.cancel();
             outputDiv.style.display = 'block';
-            document.getElementById('descSummary').innerHTML = '<div class="loading">🤖 Your AI Professor is preparing a comprehensive lesson...</div>';
+            titleH3.innerText = topic;
+            contentDiv.innerHTML = `
+                <div class="loading">
+                    <div class="dot-pulse"></div>
+                    <div class="dot-pulse" style="animation-delay: 0.2s"></div>
+                    <div class="dot-pulse" style="animation-delay: 0.4s"></div>
+                    <p style="margin-top: 20px;">Gemini is generating your lesson...</p>
+                </div>`;
 
             try {
                 const response = await fetch('/tools/generate-concept', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ topic: topic, level: level })
+                    body: JSON.stringify({ topic, level })
                 });
+
                 const data = await response.json();
 
-                if (data.error) {
-                    document.getElementById('descSummary').innerText = "Error: " + data.error;
-                    return;
-                }
-
-                // Populate all sections
-                document.getElementById('descSummary').innerText = data.summary || 'N/A';
-                document.getElementById('descAnalogy').innerText = data.analogy || 'N/A';
-                document.getElementById('descTechnical').innerText = data.technical || 'N/A';
-                document.getElementById('descSteps').innerText = data.steps || 'N/A';
-                document.getElementById('descCode').innerText = data.code || '# No code provided';
-                document.getElementById('descUsecase').innerText = data.usecase || 'N/A';
-                document.getElementById('descProsCons').innerText = data.pros_cons || 'N/A';
-                document.getElementById('descQuiz').innerText = data.quiz || 'No quiz generated';
-                document.getElementById('descChallenge').innerText = data.challenge || '# No challenge provided';
-
-                // Conditionally show math section
-                const mathSection = document.getElementById('mathSection');
-                const mathContent = data.math || '';
-
-                if (mathContent && mathContent.trim() && mathContent.length > 10) {
-                    mathSection.style.display = 'block';
-                    document.getElementById('descMath').innerHTML = `$$${mathContent}$$`;
-
-                    // Re-render MathJax
-                    if (typeof MathJax !== 'undefined') {
-                        MathJax.typesetPromise();
-                    }
+                if (data.response) {
+                    await typeWriter(data.response);
                 } else {
-                    mathSection.style.display = 'none';
+                    contentDiv.innerHTML = `<p style="color: red;">Error: ${data.error || 'Failed to generate response'}</p>`;
                 }
-
-                // Scroll to output
-                outputDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
             } catch (error) {
-                document.getElementById('descSummary').innerText = "Error connecting to AI service. Please check your API key and try again.";
-                console.error('Error:', error);
+                console.error('API Error:', error);
+                contentDiv.innerHTML = `<p style="color: red;">Failed to connect to AI service. Please try again.</p>`;
             }
         }
 
-        function speakSummary() {
-            const text = document.getElementById('descSummary').innerText;
-            if (!text || text.includes('Loading') || text.includes('thinking')) return;
-
-            if ('speechSynthesis' in window) {
+        function toggleSpeech() {
+            if (window.speechSynthesis.speaking) {
                 window.speechSynthesis.cancel();
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.rate = 0.9;
-                window.speechSynthesis.speak(utterance);
+                document.getElementById('speakerIcon').innerText = '🔊';
+                document.getElementById('speakerText').innerText = 'Listen';
             } else {
-                alert("Text-to-Speech not supported in this browser.");
+                const text = contentDiv.innerText;
+                if (!text) return;
+
+                currentUtterance = new SpeechSynthesisUtterance(text);
+                currentUtterance.rate = 1.0;
+
+                currentUtterance.onend = () => {
+                    document.getElementById('speakerIcon').innerText = '🔊';
+                    document.getElementById('speakerText').innerText = 'Listen';
+                };
+
+                window.speechSynthesis.speak(currentUtterance);
+                document.getElementById('speakerIcon').innerText = '🛑';
+                document.getElementById('speakerText').innerText = 'Stop';
             }
         }
+
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') generateConcept();
+        });
     </script>
 </body>
 

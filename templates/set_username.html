@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Your Profile | LearnoSphere</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="dashboard-body">
+    <div class="container" style="display: flex; justify-content: center; align-items: center; min-height: 100vh;">
+        <div class="card" style="max-width: 400px; width: 100%; padding: 40px; text-align: center;">
+            <h1 class="brand">🚀 LearnoSphere</h1>
+            <h2 style="margin: 20px 0;">Welcome, {{ user.name }}!</h2>
+            <p style="color: rgba(255,255,255,0.7); margin-bottom: 30px;">
+                Please choose a unique username to complete your profile.
+            </p>
+
+            <form action="/set-username" method="POST">
+                <div class="input-group" style="margin-bottom: 25px;">
+                    <input type="text" name="username" placeholder="Enter username" required
+                        style="width: 100%; padding: 12px; border-radius: 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white;">
+                </div>
+                <button type="submit" class="btn" style="width: 100%;">Finalize Profile</button>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>

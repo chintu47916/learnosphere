@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ topic.title }} | Python Course</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css" rel="stylesheet">
+    <style>
+        .playground-container {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 20px;
+            height: calc(100vh - 120px);
+        }
+
+        .explanation-panel {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            border-radius: 15px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .code-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .editor-container {
+            flex-grow: 1;
+            border-radius: 15px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+
+        .CodeMirror {
+            height: 100%;
+            font-size: 16px;
+        }
+
+        .output-panel {
+            height: 150px;
+            background: #1e1e1e;
+            border-radius: 10px;
+            padding: 15px;
+            font-family: 'Courier New', Courier, monospace;
+            color: #ddd;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .requirement-box {
+            background: rgba(79, 172, 254, 0.1);
+            border-left: 4px solid #4facfe;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .verify-btn {
+            padding: 15px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .verify-btn:hover {
+            transform: scale(1.02);
+            filter: brightness(1.1);
+        }
+
+        .message-toast {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .message-success {
+            background: rgba(76, 209, 55, 0.2);
+            border: 1px solid #4cd137;
+            color: #4cd137;
+        }
+
+        .message-error {
+            background: rgba(232, 65, 24, 0.2);
+            border: 1px solid #e84118;
+            color: #e84118;
+        }
+    </style>
+</head>
+
+<body class="dashboard-body">
+    {% include 'sidebar.html' ignore missing %}
+
+    <main class="main-content">
+        <header class="dashboard-header">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <a href="/courses/python" class="btn" style="width: auto; padding: 8px 15px;">← Back</a>
+                <h2>Topic {{ topic.id }}: {{ topic.title }}</h2>
+            </div>
+            <div id="topic-status">
+                <!-- Status will show here -->
+            </div>
+        </header>
+
+        <div class="playground-container">
+            <div class="explanation-panel">
+                <h3>The Concept</h3>
+                <p>{{ topic.explanation }}</p>
+
+                <div class="requirement-box">
+                    <strong>Your Task:</strong><br>
+                    {{ topic.requirement }}
+                </div>
+
+                <div style="margin-top: 30px;">
+                    <h4>Pro Tip 💡</h4>
+                    <p style="font-size: 0.9rem; color: rgba(255,255,255,0.7);">
+                        Try to follow the logic step by step. If you get stuck, our AI will provide a hint!
+                    </p>
+                </div>
+            </div>
+
+            <div class="code-panel" data-topic-id="{{ topic.id }}">
+                <div class="editor-container">
+                    <textarea id="editor">{{ topic.starter_code or "# Start coding here\n" }}</textarea>
+                </div>
+
+                <div class="output-panel" id="output">
+                    // Console output will appear here...
+                </div>
+
+                <button class="verify-btn" onclick="verifyCode()">Run & Verify Code</button>
+                <div id="feedback-msg" class="message-toast"></div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
+    <script>
+        const editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
+            mode: 'python',
+            theme: 'dracula',
+            lineNumbers: true,
+            indentUnit: 4,
+            autoCloseBrackets: true
+        });
+
+        async function verifyCode() {
+            const btn = document.querySelector('.verify-btn');
+            const feedback = document.getElementById('feedback-msg');
+            const outputPanel = document.getElementById('output');
+
+            btn.innerHTML = "Verifying...";
+            btn.disabled = true;
+
+            const topicId = document.querySelector('.code-panel').dataset.topicId;
+            const response = await fetch('/courses/python/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    topic_id: parseInt(topicId),
+                    code: editor.getValue()
+                })
+            });
+
+            const result = await response.json();
+
+            btn.innerHTML = "Run & Verify Code";
+            btn.disabled = false;
+
+            outputPanel.innerHTML = result.output || "// No output";
+            feedback.style.display = 'block';
+            feedback.innerHTML = result.message;
+            feedback.className = 'message-toast ' + (result.success ? 'message-success' : 'message-error');
+
+            if (result.success) {
+                // Celebration effect?
+                setTimeout(() => {
+                    if (confirm("Congratulations! Want to move to the next topic?")) {
+                        window.location.href = "/courses/python";
+                    }
+                }, 1000);
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Development Course | LearnoSphere</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .course-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .progress-header {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .progress-bar-large {
+            height: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar-large .fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+            width: 0%;
+            transition: width 1s ease-in-out;
+        }
+
+        .topics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .topic-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .topic-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .topic-card.locked {
+            opacity: 0.6;
+            filter: grayscale(1);
+            cursor: not-allowed;
+        }
+
+        .topic-card.completed {
+            border-color: #4cd137;
+        }
+
+        .topic-number {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .status-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.2rem;
+        }
+
+        .topic-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            text-decoration: none;
+            margin-top: 20px;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .btn-start {
+            background: #f5576c;
+            color: white;
+        }
+
+        .btn-locked {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.3);
+            pointer-events: none;
+        }
+
+        .btn-completed {
+            background: #4cd137;
+            color: white;
+        }
+    </style>
+</head>
+
+<body class="dashboard-body">
+    {% include 'sidebar.html' ignore missing %}
+
+    <main class="main-content">
+        <div class="course-container">
+            <header class="dashboard-header">
+                <div>
+                    <h1>🌐 Web Development (HTML)</h1>
+                    <p>Master the building blocks of the web with 16 hands-on topics.</p>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <a href="/courses" class="btn" style="width: auto;">View All Courses</a>
+                </div>
+            </header>
+
+            <div class="progress-header">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h3>Course Progress</h3>
+                    <span style="font-weight: bold; color: #f5576c;">{{ progress }}%</span>
+                </div>
+                <div class="progress-bar-large">
+                    <div class="fill" style="width: {{ progress }}%;"></div>
+                </div>
+                <p style="font-size: 0.9rem; color: rgba(255,255,255,0.6);">
+                    {{ (progress * 16) // 100 }} of 16 topics completed.
+                </p>
+            </div>
+
+            <div class="topics-grid">
+                {% for topic in topics %}
+                <div class="topic-card {{ topic.status }}">
+                    <span class="topic-number">Topic {{ topic.id }}</span>
+                    <h3>{{ topic.title }}</h3>
+
+                    <div class="status-badge">
+                        {% if topic.status == 'completed' %} ✅
+                        {% elif topic.status == 'locked' %} 🔒
+                        {% else %} 🚀
+                        {% endif %}
+                    </div>
+
+                    {% if topic.status == 'locked' %}
+                    <a href="#" class="topic-btn btn-locked">Locked</a>
+                    {% elif topic.status == 'completed' %}
+                    <a href="/courses/web/topic/{{ topic.id }}" class="topic-btn btn-completed">Review Topic</a>
+                    {% else %}
+                    <a href="/courses/web/topic/{{ topic.id }}" class="topic-btn btn-start">Start Learning</a>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>

@@ -441,6 +441,11 @@ body {
     background: #e6f0ff;
 }
 
+.path-item.unlocked .step-icon {
+    border-color: #0072ff;
+    background: #ffffff;
+}
+
 .path-item.locked .step-icon {
     filter: grayscale(1);
     opacity: 0.6;

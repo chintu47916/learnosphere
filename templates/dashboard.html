@@ -77,7 +77,8 @@
                     <h3>🗺️ Learning Path</h3>
                     <ul class="path-list">
                         {% for step in learning_path %}
-                        <li class="path-item {{ step.status }}">
+                        <li class="path-item {{ step.status }}" {% if step.link
+                            %}onclick="window.location.href='{{ step.link }}'" style="cursor: pointer;" {% endif %}>
                             <div class="step-icon">{{ step.icon }}</div>
                             <div class="step-info" style="flex-grow: 1;">
                                 <h4>{{ step.title }}</h4>

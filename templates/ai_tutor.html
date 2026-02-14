@@ -7,88 +7,229 @@
     <title>AI Tutor | LearnoSphere</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        .chat-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            max-width: 900px;
+            margin: 0 auto;
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .chat-history {
+            flex-grow: 1;
+            padding: 25px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .message {
+            display: flex;
+            flex-direction: column;
+            max-width: 80%;
+        }
+
+        .message.user {
+            align-self: flex-end;
+        }
+
+        .message.bot {
+            align-self: flex-start;
+        }
+
+        .bubble {
+            padding: 12px 18px;
+            border-radius: 18px;
+            font-size: 15px;
+            line-height: 1.6;
+            position: relative;
+        }
+
+        .user .bubble {
+            background: #0072ff;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .bot .bubble {
+            background: #f1f3f4;
+            color: #3c4043;
+            border-bottom-left-radius: 4px;
+        }
+
+        .bubble pre {
+            background: #202124 !important;
+            color: #fff !important;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+
+        .bubble code {
+            font-family: 'Consolas', monospace;
+            font-size: 14px;
+        }
+
+        .chat-input-area {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .chat-input-area input {
+            flex-grow: 1;
+            padding: 14px 20px;
+            border: 1px solid #dfe1e5;
+            border-radius: 24px;
+            outline: none;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+
+        .chat-input-area input:focus {
+            border-color: #0072ff;
+        }
+
+        .send-btn {
+            background: #0072ff;
+            color: white;
+            border: none;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .typing-indicator {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            display: none;
+        }
+    </style>
 </head>
 
 <body class="dashboard-body">
     <main class="main-content" style="display: flex; flex-direction: column; height: 100vh;">
         <header class="dashboard-header">
-            <h2>🤖 AI Tutor</h2>
+            <h2>🤖 LearnoSphere AI Tutor</h2>
             <a href="/" class="btn" style="width: auto;">Back to Dashboard</a>
         </header>
 
-        <div class="card" style="flex-grow: 1; display: flex; flex-direction: column; padding: 0; overflow: hidden;">
-            <div class="chat-history" style="flex-grow: 1; padding: 20px; overflow-y: auto; background: #f9f9f9;">
-                <div class="message bot" style="margin-bottom: 20px;">
-                    <div class="bubble"
-                        style="background: white; padding: 15px; border-radius: 15px 15px 15px 0; border: 1px solid #eee; display: inline-block; max-width: 80%;">
+        <div class="chat-container">
+            <div class="chat-history" id="chatHistory">
+                <div class="message bot">
+                    <div class="bubble">
                         Hello {{ user.name }}! I am your AI Tutor. How can I help you with your studies today?
                     </div>
                 </div>
             </div>
 
-            <div class="chat-input"
-                style="padding: 20px; background: white; border-top: 1px solid #eee; display: flex; gap: 10px;">
-                <input type="text" placeholder="Ask a question..."
-                    style="flex-grow: 1; padding: 15px; border: 1px solid #ddd; border-radius: 25px; outline: none;">
-                <button class="btn" style="width: auto; border-radius: 25px; padding: 0 30px;">Send</button>
+            <div id="typingIndicator" class="typing-indicator" style="padding: 0 25px 10px;">AI is thinking...</div>
+
+            <div class="chat-input-area">
+                <input type="text" id="userInput" placeholder="Ask anything about coding or ML..." autocomplete="off">
+                <button class="send-btn" onclick="handleSend()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
             </div>
         </div>
     </main>
 
     <script>
-        const chatInput = document.querySelector('.chat-input input');
-        const sendBtn = document.querySelector('.chat-input button');
-        const chatHistory = document.querySelector('.chat-history');
+        const chatInput = document.getElementById('userInput');
+        const chatHistory = document.getElementById('chatHistory');
+        const typingIndicator = document.getElementById('typingIndicator');
 
-        function addMessage(text, sender) {
+        // Configure marked options
+        marked.setOptions({
+            breaks: true,
+            gfm: true
+        });
+
+        function addMessage(text, sender, isMarkdown = false) {
             const msgDiv = document.createElement('div');
             msgDiv.classList.add('message', sender);
-            msgDiv.style.marginBottom = '20px';
 
             const bubble = document.createElement('div');
             bubble.classList.add('bubble');
-            bubble.style.padding = '15px';
-            bubble.style.display = 'inline-block';
-            bubble.style.maxWidth = '80%';
-            bubble.style.border = '1px solid #eee';
 
-            if (sender === 'user') {
-                msgDiv.style.textAlign = 'right';
-                bubble.style.background = '#0072ff';
-                bubble.style.color = 'white';
-                bubble.style.borderRadius = '15px 15px 0 15px';
+            if (isMarkdown) {
+                bubble.innerHTML = marked.parse(text);
             } else {
-                bubble.style.background = 'white';
-                bubble.style.borderRadius = '15px 15px 15px 0';
+                bubble.textContent = text;
             }
 
-            bubble.textContent = text;
             msgDiv.appendChild(bubble);
             chatHistory.appendChild(msgDiv);
             chatHistory.scrollTop = chatHistory.scrollHeight;
+            return bubble;
         }
 
-        function handleSend() {
+        async function typeWorkEffect(element, text) {
+            const tokens = text.split(' ');
+            let currentText = '';
+            for (let i = 0; i < tokens.length; i++) {
+                currentText += tokens[i] + ' ';
+                element.innerHTML = marked.parse(currentText);
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+                await new Promise(resolve => setTimeout(resolve, 30));
+            }
+        }
+
+        async function handleSend() {
             const text = chatInput.value.trim();
             if (!text) return;
 
             addMessage(text, 'user');
             chatInput.value = '';
+            typingIndicator.style.display = 'block';
 
-            // Mock Bot Response
-            setTimeout(() => {
-                const responses = [
-                    "That's a great question! Let's break it down...",
-                    "I can help with that. Have you looking into the documentation?",
-                    "Interesting! Tell me more about what you're trying to achieve.",
-                    "Keep going! You're doing great with your learning path."
-                ];
-                const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-                addMessage(randomResponse, 'bot');
-            }, 1000);
+            try {
+                const response = await fetch('/ai-tutor/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text })
+                });
+
+                const data = await response.json();
+                typingIndicator.style.display = 'none';
+
+                if (data.response) {
+                    const botBubble = addMessage('', 'bot', true);
+                    await typeWorkEffect(botBubble, data.response);
+                } else if (data.error) {
+                    addMessage("Error: " + data.error, 'bot');
+                }
+            } catch (error) {
+                typingIndicator.style.display = 'none';
+                addMessage("I'm having trouble connecting to the server. Please check your internet connection.", 'bot');
+            }
         }
 
-        sendBtn.addEventListener('click', handleSend);
         chatInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') handleSend();
         });

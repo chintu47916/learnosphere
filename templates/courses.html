@@ -32,10 +32,14 @@
                 </div>
                 {% endif %}
 
-                {% if course.status == 'completed' %}
+                {% if course.status == 'unlocked' %}
+                <a href="{{ '/courses/web' if 'Web' in course.title else '/courses/python' }}" class="btn">Enroll
+                    Now</a>
+                {% elif 'Python' in course.title or course.status == 'in-progress' %}
+                <a href="{{ '/courses/python' if 'Python' in course.title else '/courses/web' }}" class="btn">Continue
+                    Learning</a>
+                {% elif course.status == 'completed' %}
                 <button class="btn">Review Course</button>
-                {% elif course.status == 'in-progress' %}
-                <button class="btn">Continue Learning</button>
                 {% else %}
                 <button class="btn" style="background: #ccc; cursor: not-allowed;">Locked</button>
                 {% endif %}
